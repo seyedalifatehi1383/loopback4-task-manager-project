@@ -1,5 +1,6 @@
-import {Entity, model, property} from '@loopback/repository';
+import {Entity, model, property, hasMany} from '@loopback/repository';
 import { User } from "@loopback/authentication-jwt";
+import {BoughtFruits} from './bought-fruits.model';
 
 @model()
 export class NewUser extends User {
@@ -17,6 +18,8 @@ export class NewUser extends User {
   })
   password: string;
 
+  @hasMany(() => BoughtFruits)
+  boughtFruits: BoughtFruits[];
 
   constructor(data?: Partial<NewUser>) {
     super(data);
