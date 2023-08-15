@@ -3,6 +3,6 @@
 // import {inject} from '@loopback/core';
 
 
-export class NewUserController {
+export class NewUserController  {
   constructor() {}
 }
