@@ -40,7 +40,7 @@ export class TaskController {
         'application/json': {
           schema: getModelSchemaRef(Task, {
             title: 'NewTask',
-            exclude: ['id'],
+            exclude: ['id' ],
           }),
         },
       },

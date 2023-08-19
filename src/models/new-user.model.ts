@@ -4,16 +4,16 @@ import { User } from "@loopback/authentication-jwt";
 export class NewUser extends User {
   // @property({
   //   type: 'string',
-  //   id: true,
+  //   // id: true,
   //   // generated: true,
   // })
   // id: string;
 
-  // @property({
-  //   type: 'string',
-  //   required: true,
-  // })
-  // username: string;
+  @property({
+    type: 'string',
+    // required: true,
+  })
+  username: string;
 
   @property({
     type: 'string',
