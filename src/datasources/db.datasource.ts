@@ -7,8 +7,8 @@ const config = {
   url: '',
   host: 'localhost',
   port: 3306,
-  user: process.env.User,
-  password: process.env.Password,
+  user: "Mohammad-baghery",
+  password: "M.40120823.b",
   database: 'Task'
 };
 
