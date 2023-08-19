@@ -1,88 +1,39 @@
-import {inject} from '@loopback/core';
-import {authenticate} from '@loopback/authentication';
-
+import {authenticate, TokenService} from '@loopback/authentication';
 import {
-  Count,
-  CountSchema,
-  Filter,
-  FilterExcludingWhere,
-  repository,
-  Where,
-} from '@loopback/repository';
-
-import {
-  TokenServiceBindings,
+  Credentials,
   MyUserService,
-  UserServiceBindings,
+  TokenServiceBindings,
   UserRepository,
-  User,
-  Credentials
+  UserServiceBindings,
 } from '@loopback/authentication-jwt';
-
+import {inject} from '@loopback/core';
+import {model, property, repository} from '@loopback/repository';
 import {
-  post,
-  param,
   get,
   getModelSchemaRef,
-  patch,
-  put,
-  del,
+  post,
   requestBody,
-  response,
   SchemaObject,
-  HttpErrors,
 } from '@loopback/rest';
-import {NewUser} from '../models';
-import {NewUserRepository} from '../repositories';
-import {TokenService} from '@loopback/authentication';
-import {SecurityBindings, UserProfile ,securityId} from '@loopback/security';
+import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 import {genSalt, hash} from 'bcryptjs';
+import { NewUser } from "../models";
+import { NewUserRepository } from "../repositories";
 import _ from 'lodash';
 
 
-// import {repository} from '@loopback/repository';
 
-
-
-
-
-const CredentialsSchema: SchemaObject = {
-  type: 'object',
-  required: ['email', 'password'],
-  properties: {
-    email: {
-      type: 'string',
-      format: 'email',
-    },
-    password: {
-      type: 'string',
-      minLength: 8,
-    },
-  },
-};
-
-export const CredentialsRequestBody = {
-  description: 'The input of login function',
-  required: true,
-  content: {
-    'application/json': {schema: CredentialsSchema},
-  },
-};
 
 export class UserController {
   constructor(
-    @repository(NewUserRepository)
-    public newUserRepository : NewUserRepository,
     @inject(TokenServiceBindings.TOKEN_SERVICE)
     public jwtService: TokenService,
     @inject(UserServiceBindings.USER_SERVICE)
     public userService: MyUserService,
     @inject(SecurityBindings.USER, {optional: true})
     public user: UserProfile,
-    @repository(UserRepository) protected userRepository: UserRepository,
+    @repository(NewUserRepository) protected newUserRepository: NewUserRepository,
   ) {}
-
-
 
 
   @post('/signup', {
@@ -91,45 +42,33 @@ export class UserController {
         description: 'User',
         content: {
           'application/json': {
-            schema: getModelSchemaRef(NewUser ,{
-              // 'x-ts-type': User,
-              exclude : ['realm' , 'password' , 'emailVerified' , 'verificationToken']
-            }),
-
+            schema: {
+              'x-ts-type': NewUser,
+            },
           },
-
         },
       },
     },
   })
   async signUp(
-    // @requestBody({
-    //   content: {
-    //     'application/json': {
-    //       schema: getModelSchemaRef(NewUser, {
-    //         title: 'NewUser',
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(NewUser, {
+            title: 'NewUser',
+          }),
+        },
+      },
+    })
+    newUserRequest: NewUser,
+  ): Promise<any> {
+    const password = await hash(newUserRequest.password, await genSalt());
+    newUserRequest.password = password
+    const User = this.userService.convertToUserProfile(newUserRequest)
+    const token = await this.jwtService.generateToken(User)
 
-    //       }),
-    //     },
-    //   },
-    // })
-    @requestBody(CredentialsRequestBody) newUserRequest : Credentials
-    // newUserRequest: NewUser,
-  ): Promise<Credentials | object> {
-    if (newUserRequest.password.length >7 && newUserRequest.email.endsWith('@gmail.com')) {
-      const password = await hash(newUserRequest.password, await genSalt());
-    const savedUser = await this.userRepository.create(
-      _.omit(newUserRequest, 'realm' , 'password' , 'emailVerified' ,'verificationToken'),
-    );
-
-    await this.userRepository.userCredentials(savedUser.id).create({password});
-
-    return savedUser;
-    } else {
-      throw new HttpErrors.Forbidden('email is not valid or password is weak')
-    }
+    return await this.newUserRepository.create(newUserRequest) , token ;
   }
-
 
 
   @post('/users/login', {
@@ -152,18 +91,26 @@ export class UserController {
     },
   })
   async login(
-    @requestBody(CredentialsRequestBody) credentials: Credentials,
-  ): Promise<any> {
-    // ensure the user exists, and the password is correct
-    const user = await this.userService.verifyCredentials(credentials);
-    // convert a User object into a UserProfile object (reduced set of properties)
-    const userProfile = this.userService.convertToUserProfile(user);
-
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(NewUser, {
+            title: 'NewUser',
+          }),
+        },
+      },
+    })
+    newUser : NewUser
+  ): Promise<{token: string}> {
+    // // ensure the user exists, and the password is correct
+    // const user = await this.userService.verifyCredentials(newUser);
+    // // convert a User object into a UserProfile object (reduced set of properties)
+    // const userProfile = this.userService.convertToUserProfile(user);
+    const User =  this.userService.convertToUserProfile(newUser)
     // create a JSON Web Token based on the user profile
-    const token = await this.jwtService.generateToken(userProfile);
-    return {token };
+    const token = await this.jwtService.generateToken(User);
+    return {token};
   }
-
 
 
   @authenticate('jwt')
@@ -184,7 +131,13 @@ export class UserController {
   async whoAmI(
     @inject(SecurityBindings.USER)
     currentUserProfile: UserProfile,
-  ): Promise<string |undefined> {
-    return currentUserProfile[securityId];
+  ): Promise<string | undefined> {
+    return currentUserProfile.name;
   }
 }
+
+
+
+
+
+

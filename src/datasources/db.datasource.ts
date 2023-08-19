@@ -12,7 +12,7 @@ const config = {
   port: 3306,
   user: process.env.User,
   password: process.env.Password,
-  database: 'Task'
+  database: 'Task.User'
 };
 
 // Observe application's life cycle to disconnect the datasource when
