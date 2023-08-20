@@ -12,9 +12,12 @@ import {
   get,
   getModelSchemaRef,
   HttpErrors,
+  patch,
   post,
   requestBody,
   SchemaObject,
+  response,
+  param,
 } from '@loopback/rest';
 import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 import {genSalt, hash} from 'bcryptjs';
@@ -61,7 +64,7 @@ export class UserController {
           schema: getModelSchemaRef(NewUser, {
             title: 'NewUser',
             partial : true,
-            exclude : ['id', 'realm' , 'emailVerified' ,'verificationToken' ]
+            exclude : ['id', 'realm' , 'emailVerified' ,'verificationToken' , 'accessLevel']
           }),
         },
       },
@@ -70,6 +73,7 @@ export class UserController {
   ): Promise<NewUser> {
     if (newUserRequest.password.length >7 && newUserRequest.email.endsWith('@gmail.com')) {
       const password = await hash(newUserRequest.password, await genSalt());
+      newUserRequest.accessLevel = "User"
     const savedUser = await this.newUserRepository.create(
       _.omit(newUserRequest, 'realm'  , 'emailVerified' ,'verificationToken'),
     );
@@ -96,7 +100,6 @@ export class UserController {
                   type: 'string',
                 },
               },
-              exclude : ['realm' , 'verificationToken' , 'emailVerified' , 'id'],
             },
           },
         },
@@ -115,22 +118,22 @@ export class UserController {
         },
       },
     })
-    newUser : Omit<NewUser ,'accessLevel' >
+    newUser : NewUser
   ): Promise<any> {
     // ensure the user exists, and the password is correct
     const user = await this.newUserRepository.findOne({where : {email : newUser.email}})
     // convert a User object into a UserProfile object (reduced set of properties)
-if (user === null) {
+  if (user === null) {
   throw new HttpErrors.NotFound('there is no such user')
-} else {
+  } else {
   const userProfile = this.userService.convertToUserProfile(user);
   // // create a JSON Web Token based on the user profile
   const token = await this.jwtService.generateToken(userProfile);
   // return {token };
   return {token}
 
-}
   }
+}
 
 
   @authenticate('jwt')
@@ -155,7 +158,54 @@ if (user === null) {
   ): Promise<any> {
     return currentUserProfile;
   }
+  @authenticate('jwt')
+  @patch('/increase/{id}')
+  @response(200, {
+    description: 'Task PATCH success count',
+    content: {'application/json': {schema: {NewUser}}},
+  })
+  async updateAll(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(NewUser,
+            {
+              partial: true,
+              exclude : ['id','realm','username','email','emailVerified','verificationToken','password']
+            }),
+        },
+      },
+    })
+    newUser: NewUser,
+    @param.path.string('id') id :string,
+    @inject(SecurityBindings.USER)
+    currentUserProfile: UserProfile,
+  ): Promise<any> {
+    const check =  await this.newUserRepository.findById(currentUserProfile[securityId])
+    // return check
+    if (check.accessLevel == "Admin") {
+      if (newUser.accessLevel == 'User') {
+        newUser.accessLevel = 'User';
+        this.newUserRepository.updateById(id,newUser);
+        return newUser
+      }
+
+      else if (newUser.accessLevel == 'SubAdmin') {
+        newUser.accessLevel = 'SubAdmin';
+        this.newUserRepository.updateById(id,newUser);
+        return newUser
+      }
+
+      else {
+        throw new HttpErrors.Forbidden('there is no such an eminency')
+      }
+    } else {
+      throw new HttpErrors.Forbidden('you are not admin')
+    }
+  }
 }
+
+
 
 
 
