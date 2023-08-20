@@ -1,19 +1,26 @@
 import {Entity, model, property} from '@loopback/repository';
 import { User } from "@loopback/authentication-jwt";
 @model()
-export class NewUser extends User {
-  // @property({
-  //   type: 'string',
-  //   // id: true,
-  //   // generated: true,
-  // })
-  // id: string;
+export class NewUser extends Entity {
+  @property({
+    type: 'number',
+    id: true,
+    generated: true,
+  })
+  id: number;
 
   @property({
     type: 'string',
-    // required: true,
+    required: true,
   })
   username: string;
+
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  email: string;
 
   @property({
     type: 'string',

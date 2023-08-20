@@ -32,6 +32,8 @@ export class UserController {
     public userService: MyUserService,
     @inject(SecurityBindings.USER, {optional: true})
     public user: UserProfile,
+    // @inject(SecurityBindings.USER, {optional: true})
+    // public newUser: UserProfile,
     @repository(NewUserRepository) protected newUserRepository: NewUserRepository,
   ) {}
 
@@ -44,6 +46,7 @@ export class UserController {
           'application/json': {
             schema: {
               // 'x-ts-type': NewUser,
+              exclude : ['realm' , 'verificationToken' , 'emailVerified' , 'id']
             },
           },
         },
@@ -57,23 +60,22 @@ export class UserController {
           schema: getModelSchemaRef(NewUser, {
             title: 'NewUser',
             partial : true,
-            exclude : ['realm' , 'verificationToken' , 'emailVerified' , 'id']
+            exclude : ['id']
           }),
         },
       },
     })
     newUserRequest: NewUser
-  ): Promise<any> {
+  ): Promise<NewUser> {
     const password = await hash(newUserRequest.password, await genSalt());
     newUserRequest.password = password
-    newUserRequest.realm = '' ;
-    newUserRequest.emailVerified = false
-    newUserRequest.verificationToken = ''
-    newUserRequest.id = '1'
-    const User = this.userService.convertToUserProfile(newUserRequest)
-    const token = await this.jwtService.generateToken(User)
 
-    return await this.newUserRepository.create(newUserRequest)  ;
+    // const User = this.userService.convertToUserProfile(newUserRequest as any)
+    // const token = await this.jwtService.generateToken(User)
+
+    return await this.newUserRepository.create(
+      _.omit(newUserRequest, 'realm' , 'verificationToken' , 'emailVerified')
+    )  ;
   }
 
 
@@ -109,9 +111,9 @@ export class UserController {
     })
     newUser : NewUser
   ): Promise<{token: string}> {
-    const User =  this.userService.convertToUserProfile(newUser)
+    // const User =  this.userService.convertToUserProfile(newUser as any)
     // create a JSON Web Token based on the user profile
-    const token = await this.jwtService.generateToken(User);
+    const token = await this.jwtService.generateToken(newUser as any);
     return {token};
   }
 
@@ -132,10 +134,11 @@ export class UserController {
     },
   })
   async whoAmI(
-    @inject(SecurityBindings.USER)
+    @inject(SecurityBindings.USER as any)
     currentUserProfile: UserProfile,
-  ): Promise<string | undefined> {
-    return currentUserProfile.name;
+    // newUser : NewUser
+  ): Promise<any> {
+    return currentUserProfile.email;
   }
 }
 
