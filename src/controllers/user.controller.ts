@@ -164,7 +164,7 @@ export class UserController {
     description: 'Task PATCH success count',
     content: {'application/json': {schema: {NewUser}}},
   })
-  async updateAll(
+  async updateId(
     @requestBody({
       content: {
         'application/json': {
@@ -185,15 +185,27 @@ export class UserController {
     // return check
     if (check.accessLevel == "Admin") {
       if (newUser.accessLevel == 'User') {
-        newUser.accessLevel = 'User';
-        this.newUserRepository.updateById(id,newUser);
-        return newUser
+        const user = await this.newUserRepository.findById(id)
+        if (user.accessLevel == 'User') {
+          throw new HttpErrors.Conflict('this user\'s eminency is already User')
+        } else {
+
+          user.accessLevel = 'User';
+          await this.newUserRepository.updateById(id,newUser);
+          return {username : user.username , accessLevel : user.accessLevel}
+        }
       }
 
       else if (newUser.accessLevel == 'SubAdmin') {
-        newUser.accessLevel = 'SubAdmin';
-        this.newUserRepository.updateById(id,newUser);
-        return newUser
+        const user = await this.newUserRepository.findById(id)
+        if (user.accessLevel == 'SubAdmin') {
+          throw new HttpErrors.Conflict('this user\'s eminency is already SubAdmin')
+        } else {
+
+          user.accessLevel = 'SubAdmin';
+          await this.newUserRepository.updateById(id,newUser);
+          return {username : user.username , accessLevel : user.accessLevel}
+        }
       }
 
       else {
