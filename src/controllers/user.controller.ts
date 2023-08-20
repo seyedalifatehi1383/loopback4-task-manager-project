@@ -45,10 +45,10 @@ export class UserController {
         description: 'User',
         content: {
           'application/json': {
-            schema: {
+            schema: getModelSchemaRef(NewUser,{
               // 'x-ts-type': NewUser,
               exclude : ['realm' , 'verificationToken' , 'emailVerified' , 'id']
-            },
+            },)
           },
         },
       },
@@ -61,7 +61,7 @@ export class UserController {
           schema: getModelSchemaRef(NewUser, {
             title: 'NewUser',
             partial : true,
-            exclude : ['id']
+            exclude : ['id', 'realm' , 'emailVerified' ,'verificationToken' ]
           }),
         },
       },
@@ -96,6 +96,7 @@ export class UserController {
                   type: 'string',
                 },
               },
+              exclude : ['realm' , 'verificationToken' , 'emailVerified' , 'id'],
             },
           },
         },
@@ -108,12 +109,13 @@ export class UserController {
         'application/json': {
           schema: getModelSchemaRef(NewUser, {
             title: 'NewUser',
-
+            partial : true,
+            exclude : ['accessLevel']
           }),
         },
       },
     })
-    newUser : NewUser
+    newUser : Omit<NewUser ,'accessLevel' >
   ): Promise<any> {
     // ensure the user exists, and the password is correct
     const user = await this.newUserRepository.findOne({where : {email : newUser.email}})
@@ -125,7 +127,7 @@ if (user === null) {
   // // create a JSON Web Token based on the user profile
   const token = await this.jwtService.generateToken(userProfile);
   // return {token };
-  return token
+  return {token}
 
 }
   }
