@@ -27,6 +27,10 @@ export class Task extends Entity {
   })
   isfinish: boolean;
 
+  @property({
+    type: 'string',
+  })
+  newUserId?: string;
 
   constructor(data?: Partial<Task>) {
     super(data);

@@ -159,7 +159,7 @@ export class UserController {
     return currentUserProfile;
   }
   @authenticate('jwt')
-  @patch('/increase/{id}')
+  @patch('/changeEminency/{id}')
   @response(200, {
     description: 'Task PATCH success count',
     content: {'application/json': {schema: {NewUser}}},

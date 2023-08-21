@@ -1,9 +1,14 @@
-import {Entity, model, property} from '@loopback/repository';
+import {Entity, model, property, hasMany} from '@loopback/repository';
 import { User } from "@loopback/authentication-jwt";
+import {Task} from './task.model';
+
 @model()
 export class NewUser extends User {
+
   // @property({
   //   type: 'number',
+  @hasMany(() => Task)
+  tasks: Task[];
   //   id: true,
   //   generated: true,
   // })
