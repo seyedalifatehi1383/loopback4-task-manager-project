@@ -246,4 +246,80 @@ export class NewUserTaskController {
   ): Promise<Task[]> {
     return this.newUserRepository.tasks(currentUserProfile[securityId]).find({where : {isfinish : false}});
   }
+
+  // admin can see the task of all of the users and subAdmins
+  @get('/admin/{userId}/task', {
+    responses: {
+      '200': {
+        description: 'Array of NewUser has many Task',
+        content: {
+          'application/json': {
+            schema: {type: 'array', items: getModelSchemaRef(Task)},
+          },
+        },
+      },
+    },
+  })
+  async findAllUsersTasks(
+    @param.path.string('userId') userId :string,
+    @inject(SecurityBindings.USER)
+    currentUserProfile: UserProfile,
+  ): Promise<any> {
+    const currentUser = await this.newUserRepository.findById(currentUserProfile[securityId])
+    const targetUser = await this.newUserRepository.findById(userId)
+
+    if (currentUser.accessLevel != "Admin") throw new HttpErrors.Forbidden('you cannot access to this route')
+    if (targetUser.accessLevel == "Admin") throw new HttpErrors.Forbidden('you cannot see your own tasks here')
+
+    return this.newUserRepository.tasks(userId);
+  }
+
+  // subAdmins can see the task of the users
+  @get('/subAdmin/{userId}/task', {
+    responses: {
+      '200': {
+        description: 'Array of NewUser has many Task',
+        content: {
+          'application/json': {
+            schema: {type: 'array', items: getModelSchemaRef(Task)},
+          },
+        },
+      },
+    },
+  })
+  async findUsersTasks(
+    @param.path.string('userId') userId :string,
+    @inject(SecurityBindings.USER)
+    currentUserProfile: UserProfile,
+  ): Promise<any> {
+    const currentUser = await this.newUserRepository.findById(currentUserProfile[securityId])
+    const targetUser = await this.newUserRepository.findById(userId)
+
+    if (currentUser.accessLevel != "SubAdmin") throw new HttpErrors.Forbidden('you cannot access to this route')
+    if (targetUser.accessLevel == "Admin") throw new HttpErrors.Forbidden('you haven\'t access to the admin\'s tasks')
+    if (targetUser.accessLevel == "SubAdmin") throw new HttpErrors.Forbidden('you cannot see your own tasks here')
+
+    return this.newUserRepository.tasks(userId);
+  }
+
+  // all of the users and subAdmins and admin can see their own tasks
+  @get('/myTasks', {
+    responses: {
+      '200': {
+        description: 'Array of NewUser has many Task',
+        content: {
+          'application/json': {
+            schema: {type: 'array', items: getModelSchemaRef(Task)},
+          },
+        },
+      },
+    },
+  })
+  async findMyTasks(
+    @param.path.string('userId') userId :string,
+    @inject(SecurityBindings.USER)
+    currentUserProfile: UserProfile,
+  ): Promise<any> {
+    return this.newUserRepository.tasks(currentUserProfile[securityId]);
+  }
 }
