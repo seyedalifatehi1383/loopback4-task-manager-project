@@ -168,7 +168,6 @@ export class NewUserTaskController {
     @inject(SecurityBindings.USER)
     currentUserProfile: UserProfile,
   ): Promise<any> {
-    task.isfinish = true
     return await this.newUserRepository.tasks(currentUserProfile[securityId]).patch(task, {id: taskId})
   }
   // ------------------------------------------------------------
