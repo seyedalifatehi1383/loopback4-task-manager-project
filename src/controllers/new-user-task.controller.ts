@@ -111,7 +111,10 @@ export class NewUserTaskController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(Task, {partial: true}),
+          schema: getModelSchemaRef(Task, {
+            partial: true,
+            exclude : ['newUserId' , 'id']
+          }),
         },
       },
     })
