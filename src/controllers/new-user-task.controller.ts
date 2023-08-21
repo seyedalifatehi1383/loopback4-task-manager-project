@@ -171,4 +171,44 @@ export class NewUserTaskController {
     const taskCount = (await this.newUserRepository.tasks(currentUserProfile[securityId]).find()).length
     return {count : taskCount};
   }
+
+
+  @get('/new-users/myFinished', {
+    responses: {
+      '200': {
+        description: 'Array of NewUser has many Task',
+        content: {
+          'application/json': {
+            schema: {type: 'array', items: getModelSchemaRef(Task)},
+          },
+        },
+      },
+    },
+  })
+  async findFinish(
+    @inject(SecurityBindings.USER)
+    currentUserProfile: UserProfile,
+  ): Promise<Task[]> {
+    return this.newUserRepository.tasks(currentUserProfile[securityId]).find({where : {isfinish : true}});
+  }
+
+
+  @get('/new-users/myNotFinished', {
+    responses: {
+      '200': {
+        description: 'Array of NewUser has many Task',
+        content: {
+          'application/json': {
+            schema: {type: 'array', items: getModelSchemaRef(Task)},
+          },
+        },
+      },
+    },
+  })
+  async findNotFinish(
+    @inject(SecurityBindings.USER)
+    currentUserProfile: UserProfile,
+  ): Promise<Task[]> {
+    return this.newUserRepository.tasks(currentUserProfile[securityId]).find({where : {isfinish : false}});
+  }
 }
