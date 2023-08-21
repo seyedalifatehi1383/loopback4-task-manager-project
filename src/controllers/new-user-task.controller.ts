@@ -25,6 +25,7 @@ import {NewUserRepository} from '../repositories';
 import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 import {inject} from '@loopback/core';
 import {authenticate} from '@loopback/authentication';
+import {User} from '@loopback/authentication-jwt';
 
 @authenticate('jwt')
 export class NewUserTaskController {
@@ -115,9 +116,24 @@ export class NewUserTaskController {
       },
     })
     task: Partial<Task>,
-    @param.query.object('where', getWhereSchemaFor(Task)) where?: Where<Task>,
-  ): Promise<Count> {
-    return this.newUserRepository.tasks(id).patch(task,{id : taskId});
+    // @param.query.object('where', getWhereSchemaFor(Task)) where?: Where<Task>,
+    @inject(SecurityBindings.USER)
+    currentUserProfile: UserProfile,
+  ): Promise<Count | undefined> {
+    const currentId = currentUserProfile[securityId]
+    const currentUser = await this.newUserRepository.findById(currentId)
+    if (currentUser.accessLevel == "Admin") {
+      return this.newUserRepository.tasks(id).patch(task,{id : taskId});
+    } else if(currentUser.accessLevel == "SubAdmin") {
+      const targetUser = await this.newUserRepository.findById(id)
+      if (targetUser.accessLevel == "User") {
+        return this.newUserRepository.tasks(id).patch(task,{id : taskId});
+      } else {
+        throw new HttpErrors.Forbidden('Sub admin can only edit user\'s tasks')
+      }
+    }else{
+      throw new HttpErrors.Forbidden('User can not edit tasks')
+    }
   }
 
   @del('/new-users/{id}/tasks', {
