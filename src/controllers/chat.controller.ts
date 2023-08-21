@@ -26,26 +26,26 @@ export class ChatController {
     public chatRepository : ChatRepository,
   ) {}
 
-  @post('/chats')
-  @response(200, {
-    description: 'Chat model instance',
-    content: {'application/json': {schema: getModelSchemaRef(Chat)}},
-  })
-  async create(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(Chat, {
-            title: 'NewChat',
-            exclude: ['id'],
-          }),
-        },
-      },
-    })
-    chat: Omit<Chat, 'id'>,
-  ): Promise<Chat> {
-    return this.chatRepository.create(chat);
-  }
+  // @post('/chats')
+  // @response(200, {
+  //   description: 'Chat model instance',
+  //   content: {'application/json': {schema: getModelSchemaRef(Chat)}},
+  // })
+  // async create(
+  //   @requestBody({
+  //     content: {
+  //       'application/json': {
+  //         schema: getModelSchemaRef(Chat, {
+  //           title: 'NewChat',
+  //           exclude: ['id'],
+  //         }),
+  //       },
+  //     },
+  //   })
+  //   chat: Omit<Chat, 'id'>,
+  // ): Promise<Chat> {
+  //   return this.chatRepository.create(chat);
+  // }
 
   @get('/chats/count')
   @response(200, {
@@ -71,29 +71,29 @@ export class ChatController {
     },
   })
   async find(
-    @param.filter(Chat) filter?: Filter<Chat>,
+    // @param.filter(Chat) filter?: Filter<Chat>,
   ): Promise<Chat[]> {
-    return this.chatRepository.find(filter);
+    return this.chatRepository.find();
   }
 
-  @patch('/chats')
-  @response(200, {
-    description: 'Chat PATCH success count',
-    content: {'application/json': {schema: CountSchema}},
-  })
-  async updateAll(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(Chat, {partial: true}),
-        },
-      },
-    })
-    chat: Chat,
-    @param.where(Chat) where?: Where<Chat>,
-  ): Promise<Count> {
-    return this.chatRepository.updateAll(chat, where);
-  }
+  // @patch('/chats')
+  // @response(200, {
+  //   description: 'Chat PATCH success count',
+  //   content: {'application/json': {schema: CountSchema}},
+  // })
+  // async updateAll(
+  //   @requestBody({
+  //     content: {
+  //       'application/json': {
+  //         schema: getModelSchemaRef(Chat, {partial: true}),
+  //       },
+  //     },
+  //   })
+  //   chat: Chat,
+  //   @param.where(Chat) where?: Where<Chat>,
+  // ): Promise<Count> {
+  //   return this.chatRepository.updateAll(chat, where);
+  // }
 
   @get('/chats/{id}')
   @response(200, {
@@ -111,34 +111,34 @@ export class ChatController {
     return this.chatRepository.findById(id, filter);
   }
 
-  @patch('/chats/{id}')
-  @response(204, {
-    description: 'Chat PATCH success',
-  })
-  async updateById(
-    @param.path.number('id') id: number,
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(Chat, {partial: true}),
-        },
-      },
-    })
-    chat: Chat,
-  ): Promise<void> {
-    await this.chatRepository.updateById(id, chat);
-  }
+  // @patch('/chats/{id}')
+  // @response(204, {
+  //   description: 'Chat PATCH success',
+  // })
+  // async updateById(
+  //   @param.path.number('id') id: number,
+  //   @requestBody({
+  //     content: {
+  //       'application/json': {
+  //         schema: getModelSchemaRef(Chat, {partial: true}),
+  //       },
+  //     },
+  //   })
+  //   chat: Chat,
+  // ): Promise<void> {
+  //   await this.chatRepository.updateById(id, chat);
+  // }
 
-  @put('/chats/{id}')
-  @response(204, {
-    description: 'Chat PUT success',
-  })
-  async replaceById(
-    @param.path.number('id') id: number,
-    @requestBody() chat: Chat,
-  ): Promise<void> {
-    await this.chatRepository.replaceById(id, chat);
-  }
+  // @put('/chats/{id}')
+  // @response(204, {
+  //   description: 'Chat PUT success',
+  // })
+  // async replaceById(
+  //   @param.path.number('id') id: number,
+  //   @requestBody() chat: Chat,
+  // ): Promise<void> {
+  //   await this.chatRepository.replaceById(id, chat);
+  // }
 
   @del('/chats/{id}')
   @response(204, {
