@@ -96,7 +96,7 @@ export class NewUserTaskController {
     // return currentUserProfile[securityId]
   }
 
-  @patch('/new-users/{id}/tasks', {
+  @patch('/new-users/{id}/tasks/{taskId}', {
     responses: {
       '200': {
         description: 'NewUser.Task PATCH success count',
@@ -106,6 +106,7 @@ export class NewUserTaskController {
   })
   async patch(
     @param.path.string('id') id: string,
+    @param.path.number('taskId') taskId: number,
     @requestBody({
       content: {
         'application/json': {
@@ -116,7 +117,7 @@ export class NewUserTaskController {
     task: Partial<Task>,
     @param.query.object('where', getWhereSchemaFor(Task)) where?: Where<Task>,
   ): Promise<Count> {
-    return this.newUserRepository.tasks(id).patch(task, where);
+    return this.newUserRepository.tasks(id).patch(task,{id : taskId});
   }
 
   @del('/new-users/{id}/tasks', {
