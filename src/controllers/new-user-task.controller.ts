@@ -140,6 +140,38 @@ export class NewUserTaskController {
 
   }
 
+
+  // this patch is for user that alarm other that his or her task
+  @patch('/new-users/completeTask/{taskId}', {
+    responses: {
+      '200': {
+        description: 'NewUser.Task PATCH success count',
+        content: {'application/json': {schema: CountSchema}},
+      },
+    },
+  })
+  async userAlarm(
+    @param.path.number('taskId') taskId: number,
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: getModelSchemaRef(Task, {
+            partial: true,
+            exclude: ['desc', 'title', 'id', 'newUserId', 'isfinish']
+
+          }),
+        },
+      },
+    })
+    task: Partial<Task>,
+    // @param.query.object('where', getWhereSchemaFor(Task)) where?: Where<Task>,
+    @inject(SecurityBindings.USER)
+    currentUserProfile: UserProfile,
+  ): Promise<any> {
+    return await this.newUserRepository.tasks(currentUserProfile[securityId]).patch(task, {id: taskId})
+  }
+  // ------------------------------------------------------------
+
   @del('/new-users/{id}/tasks', {
     responses: {
       '200': {
