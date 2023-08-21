@@ -30,6 +30,11 @@ export class Chat extends Entity {
   })
   newUserId?: string;
 
+  @property({
+    type: 'string',
+  })
+  name: string;
+  
   constructor(data?: Partial<Chat>) {
     super(data);
   }

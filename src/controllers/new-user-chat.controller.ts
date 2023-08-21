@@ -21,6 +21,11 @@ import {
 } from '../models';
 import {NewUserRepository} from '../repositories';
 
+import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
+import {inject} from '@loopback/core';
+import {authenticate} from '@loopback/authentication';
+
+@authenticate('jwt')
 export class NewUserChatController {
   constructor(
     @repository(NewUserRepository) protected newUserRepository: NewUserRepository,
@@ -45,7 +50,7 @@ export class NewUserChatController {
     return this.newUserRepository.chats(id).find(filter);
   }
 
-  @post('/new-users/{id}/chats', {
+  @post('/new-users/chats', {
     responses: {
       '200': {
         description: 'NewUser model instance',
@@ -54,20 +59,24 @@ export class NewUserChatController {
     },
   })
   async create(
-    @param.path.string('id') id: typeof NewUser.prototype.id,
     @requestBody({
       content: {
         'application/json': {
           schema: getModelSchemaRef(Chat, {
             title: 'NewChatInNewUser',
-            exclude: ['id'],
-            optional: ['newUserId']
+            exclude: ['id' , 'newUserId' ,'name'],
           }),
         },
       },
-    }) chat: Omit<Chat, 'id'>,
-  ): Promise<Chat> {
-    return this.newUserRepository.chats(id).create(chat);
+    })
+    chat: Omit<Chat, 'id'>,
+    @inject(SecurityBindings.USER)
+    currentUserProfile: UserProfile,
+  ): Promise<any> {
+    chat.newUserId = currentUserProfile[securityId]
+    // chat.name = currentUserProfile.name
+    // return this.newUserRepository.chats(currentUserProfile[securityId]).create(chat);
+    return currentUserProfile.name
   }
 
   @patch('/new-users/{id}/chats', {
