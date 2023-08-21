@@ -134,6 +134,7 @@ export class NewUserTaskController {
     }else{
       throw new HttpErrors.Forbidden('User can not edit tasks')
     }
+
   }
 
   @del('/new-users/{id}/tasks', {
@@ -149,5 +150,25 @@ export class NewUserTaskController {
     @param.query.object('where', getWhereSchemaFor(Task)) where?: Where<Task>,
   ): Promise<Count> {
     return this.newUserRepository.tasks(id).delete(where);
+  }
+
+  @get('/new-users/myTaskCount', {
+    responses: {
+      '200': {
+        description: 'Array of NewUser has many Task',
+        content: {
+          'application/json': {
+            schema: {type: 'array', items: getModelSchemaRef(Task)},
+          },
+        },
+      },
+    },
+  })
+  async findCount(
+    @inject(SecurityBindings.USER)
+    currentUserProfile: UserProfile,
+  ): Promise<Count> {
+    const taskCount = (await this.newUserRepository.tasks(currentUserProfile[securityId]).find()).length
+    return {count : taskCount};
   }
 }
