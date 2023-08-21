@@ -316,7 +316,6 @@ export class NewUserTaskController {
     },
   })
   async findMyTasks(
-    @param.path.string('userId') userId :string,
     @inject(SecurityBindings.USER)
     currentUserProfile: UserProfile,
   ): Promise<any> {
