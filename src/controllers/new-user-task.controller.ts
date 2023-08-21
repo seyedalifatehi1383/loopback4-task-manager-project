@@ -271,7 +271,7 @@ export class NewUserTaskController {
     if (currentUser.accessLevel != "Admin") throw new HttpErrors.Forbidden('you cannot access to this route')
     if (targetUser.accessLevel == "Admin") throw new HttpErrors.Forbidden('you cannot see your own tasks here')
 
-    return this.newUserRepository.tasks(userId);
+    return this.newUserRepository.tasks(userId).find();
   }
 
   // subAdmins can see the task of the users
@@ -299,7 +299,7 @@ export class NewUserTaskController {
     if (targetUser.accessLevel == "Admin") throw new HttpErrors.Forbidden('you haven\'t access to the admin\'s tasks')
     if (targetUser.accessLevel == "SubAdmin") throw new HttpErrors.Forbidden('you cannot see your own tasks here')
 
-    return this.newUserRepository.tasks(userId);
+    return this.newUserRepository.tasks(userId).find();
   }
 
   // all of the users and subAdmins and admin can see their own tasks
@@ -319,6 +319,6 @@ export class NewUserTaskController {
     @inject(SecurityBindings.USER)
     currentUserProfile: UserProfile,
   ): Promise<any> {
-    return this.newUserRepository.tasks(currentUserProfile[securityId]);
+    return this.newUserRepository.tasks(currentUserProfile[securityId]).find();
   }
 }
