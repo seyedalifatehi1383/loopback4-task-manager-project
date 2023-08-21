@@ -269,7 +269,7 @@ export class NewUserTaskController {
     const targetUser = await this.newUserRepository.findById(userId)
 
     if (currentUser.accessLevel != "Admin") throw new HttpErrors.Forbidden('you cannot access to this route')
-    if (targetUser.accessLevel == "Admin") throw new HttpErrors.Forbidden('you cannot see your own tasks here')
+    if (targetUser.accessLevel == "Admin") throw new HttpErrors.Forbidden('you cannot see your own tasks here, you can see them in \'myTasks\' route instead')
 
     return this.newUserRepository.tasks(userId).find();
   }
@@ -297,7 +297,7 @@ export class NewUserTaskController {
 
     if (currentUser.accessLevel != "SubAdmin") throw new HttpErrors.Forbidden('you cannot access to this route')
     if (targetUser.accessLevel == "Admin") throw new HttpErrors.Forbidden('you haven\'t access to the admin\'s tasks')
-    if (targetUser.accessLevel == "SubAdmin") throw new HttpErrors.Forbidden('you cannot see your own tasks here')
+    if (targetUser.accessLevel == "SubAdmin") throw new HttpErrors.Forbidden('you cannot see your own tasks here, you can see them in \'myTasks\' route instead')
 
     return this.newUserRepository.tasks(userId).find();
   }
