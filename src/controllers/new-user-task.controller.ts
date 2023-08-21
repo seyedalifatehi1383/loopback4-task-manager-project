@@ -157,7 +157,7 @@ export class NewUserTaskController {
         'application/json': {
           schema: getModelSchemaRef(Task, {
             partial: true,
-            exclude: ['desc', 'title', 'id', 'newUserId', 'isfinish']
+            exclude: ['desc', 'title', 'id', 'newUserId']
 
           }),
         },
@@ -168,6 +168,7 @@ export class NewUserTaskController {
     @inject(SecurityBindings.USER)
     currentUserProfile: UserProfile,
   ): Promise<any> {
+    task.isfinish = true
     return await this.newUserRepository.tasks(currentUserProfile[securityId]).patch(task, {id: taskId})
   }
   // ------------------------------------------------------------
