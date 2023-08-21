@@ -14,6 +14,7 @@ import {
   HttpErrors,
   patch,
   post,
+  del,
   requestBody,
   SchemaObject,
   response,
@@ -24,8 +25,17 @@ import {genSalt, hash} from 'bcryptjs';
 import { NewUser } from "../models";
 import { NewUserRepository } from "../repositories";
 import _ from 'lodash';
+import {error} from 'console';
 
 
+@model()
+export class deletUserResponse  {
+  @property({
+    type : 'string',
+    require :true
+  })
+  message :string;
+}
 
 
 export class UserController {
@@ -214,6 +224,39 @@ export class UserController {
     } else {
       throw new HttpErrors.Forbidden('you are not admin')
     }
+  }
+
+
+
+  @authenticate('jwt')
+  @del('/deleteAccount', {
+    responses: {
+      '200': {
+        description: 'NewUser.Task DELETE user was success',
+        content: {'application/json': {
+          schema: getModelSchemaRef(deletUserResponse , {
+            title : "New-user",
+            partial : true
+          })
+        }},
+      },
+    },
+
+
+  })
+  async delete(
+    @inject(SecurityBindings.USER)
+    currentUserProfile: UserProfile,
+  ): Promise<any> {
+      const targetUser = this.newUserRepository.findById(currentUserProfile[securityId])
+      if (targetUser !== null) {
+        await this.newUserRepository.deleteById(currentUserProfile[securityId])
+        return {message : "your account has been deleted successfully"}
+      } else {
+        // return targetUser
+        throw new HttpErrors[404]
+      }
+    // return currentUserProfile[securityId]
   }
 }
 
