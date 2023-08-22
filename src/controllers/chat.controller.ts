@@ -19,7 +19,10 @@ import {
 } from '@loopback/rest';
 import {Chat} from '../models';
 import {ChatRepository} from '../repositories';
+import {authenticate} from '@loopback/authentication';
+import { showMessageResponse } from "../controllers/new-user-chat.controller";
 
+@authenticate('jwt')
 export class ChatController {
   constructor(
     @repository(ChatRepository)
@@ -65,7 +68,13 @@ export class ChatController {
       'application/json': {
         schema: {
           type: 'array',
-          items: getModelSchemaRef(Chat, {includeRelations: true}),
+          items: getModelSchemaRef(Chat,
+            {
+              includeRelations: true,
+              partial : true,
+              exclude : ['newUserId']
+
+            }),
         },
       },
     },
