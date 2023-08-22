@@ -25,6 +25,8 @@ import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 import {inject} from '@loopback/core';
 import {authenticate} from '@loopback/authentication';
 
+
+
 @authenticate('jwt')
 export class NewUserChatController {
   constructor(
@@ -54,7 +56,13 @@ export class NewUserChatController {
     responses: {
       '200': {
         description: 'NewUser model instance',
-        content: {'application/json': {schema: getModelSchemaRef(Chat)}},
+        content: {'application/json': {
+          schema: getModelSchemaRef(Chat , {
+            partial : true,
+            exclude : ['newUserId']
+          })
+          }
+        },
       },
     },
   })
@@ -74,9 +82,9 @@ export class NewUserChatController {
     currentUserProfile: UserProfile,
   ): Promise<any> {
     chat.newUserId = currentUserProfile[securityId]
-    // chat.name = currentUserProfile.name
-    // return this.newUserRepository.chats(currentUserProfile[securityId]).create(chat);
-    return currentUserProfile.name
+    chat.name = currentUserProfile.name!
+    return this.newUserRepository.chats(currentUserProfile[securityId]).create(chat);
+    // return currentUserProfile.name
   }
 
   @patch('/new-users/{id}/chats', {
