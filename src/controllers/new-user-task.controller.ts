@@ -78,19 +78,28 @@ export class NewUserTaskController {
   ): Promise<any> {
     const currentId = currentUserProfile[securityId]
     const currentUser = await this.newUserRepository.findById(currentId)
+    const already = await this.newUserRepository.tasks(id).find({where : {title : task.title}})
     if (currentUser.accessLevel == "Admin") {
-      task.isfinish = false
-      task.newUserId = id;
-      return this.newUserRepository.tasks(id).create(task);
+      if (already === null) {
+        task.isfinish = false
+        task.newUserId = id;
+        return this.newUserRepository.tasks(id).create(task);
+      } else {
+        throw new HttpErrors.Conflict('this task already exists for this user')
+      }
 
     }else if (currentUser.accessLevel == "SubAdmin") {
-      const targetUser =await this.newUserRepository.findById(id)
+      if (already === null) {
+        const targetUser =await this.newUserRepository.findById(id)
       if (targetUser.accessLevel == "Admin" || targetUser.accessLevel == "SubAdmin") {
         throw new HttpErrors.Forbidden('SubAdmins can only  add task  for Users')
       } else {
         task.isfinish = false
         task.newUserId = id;
         return this.newUserRepository.tasks(id).create(task);
+      }
+      } else {
+        throw new HttpErrors.Conflict('this task already exits for this user')
       }
     } else {
       throw new HttpErrors.Forbidden('Users can not add task')
