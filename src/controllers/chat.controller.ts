@@ -1,6 +1,7 @@
 import {
   Count,
   CountSchema,
+  Event,
   Filter,
   FilterExcludingWhere,
   repository,
@@ -22,6 +23,7 @@ import {ChatRepository} from '../repositories';
 import {authenticate} from '@loopback/authentication';
 import { showMessageResponse } from "../controllers/new-user-chat.controller";
 import {group} from 'node:console';
+import {text} from 'stream/consumers';
 
 @authenticate('jwt')
 export class ChatController {
@@ -105,7 +107,7 @@ export class ChatController {
   //   return this.chatRepository.updateAll(chat, where);
   // }
 
-  @get('/chats/{MessageGroup}')
+  @get('/chats/group/{MessageGroup}')
   @response(200, {
     description: 'Chat model instance',
     content: {
@@ -114,13 +116,31 @@ export class ChatController {
       },
     },
   })
-  async findById(
+  async findByGroup(
 
     @param.path.string('MessageGroup') MessageGroup: string,
     // @param.filter(Chat, {exclude: 'where'}) filter?: FilterExcludingWhere<Chat>
   ): Promise<any> {
     const messages = await this.chatRepository.find({where : {group : MessageGroup}})
     return messages.map(obj =>({id : obj.id , title : obj.title , text : obj.text , group : obj.group , name : obj.name}))
+  }
+
+
+
+  @get('/chats/text/{MessageText}')
+  @response(200, {
+    description: 'Chat model instance',
+    content: {
+      'application/json': {
+        schema: getModelSchemaRef(Chat, {includeRelations: true}),
+      },
+    },
+  })
+  async findByText(
+    @param.path.string('MessageText') MessageText: string,
+  ): Promise<any> {
+    const messages = await this.chatRepository.find()
+    return messages.filter(obj => (obj.text.includes(MessageText)))
   }
 
   // @patch('/chats/{id}')
