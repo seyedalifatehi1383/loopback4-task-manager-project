@@ -32,6 +32,7 @@ import {authenticate} from '@loopback/authentication';
 import {test} from 'node:test';
 import _ from 'lodash';
 
+// this model is for showing messages when delete method is processing
 @model()
 export class showMessageResponse extends Entity {
   @property({
@@ -70,6 +71,7 @@ export class NewUserChatController {
     @repository(NewUserRepository) protected newUserRepository: NewUserRepository,
   ) { }
 
+  // getting the history of a user messages
   @get('/new-users/chats-history', {
     responses: {
       '200': {
@@ -89,6 +91,7 @@ export class NewUserChatController {
     return this.newUserRepository.chats(currentUserProfile[securityId]).find();
   }
 
+  // this method is for posting a chat
   @post('/new-users/chats', {
     responses: {
       '200': {
@@ -125,6 +128,7 @@ export class NewUserChatController {
     return _.omit(response, 'newUserId')
   }
 
+  // this method is for that all of the members can edit one of their own messages
   @patch('/new-users/chats/{messageId}', {
     responses: {
       '200': {
@@ -164,6 +168,7 @@ export class NewUserChatController {
     return _.omit(response[0], 'newUserId')
   }
 
+  // this method is for that a member can delete his or her message
   @del('/new-users/chats/{messageId}', {
     responses: {
       '200': {
