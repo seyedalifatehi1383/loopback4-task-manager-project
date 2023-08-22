@@ -152,7 +152,7 @@ export class NewUserChatController {
     responses: {
       '200': {
         description: 'NewUser.Chat DELETE success count',
-        content: {'application/json': {schema: CountSchema}},
+        content: {'application/json': {schema: String}},
       },
     },
   })
@@ -161,10 +161,10 @@ export class NewUserChatController {
     @inject(SecurityBindings.USER)
     currentUserProfile: UserProfile,
   ): Promise<any> {
-    // const result = await this.newUserRepository.chats(currentUserProfile[securityId]).find({where: {id: chatId}})
-    // if (result.length == 0) {
-    //   throw new HttpErrors.Forbidden('you cannot delete other users\' messages')
-    // }
+    const result = await this.newUserRepository.chats(currentUserProfile[securityId]).find({where: {id: chatId}})
+    if (result.length == 0) {
+      throw new HttpErrors.Forbidden('you cannot delete other users\' messages')
+    }
 
     await this.newUserRepository.chats(currentUserProfile[securityId]).delete({id: chatId});
     return {"message" : 'message was successfully deleted'}
