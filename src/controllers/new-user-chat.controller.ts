@@ -152,7 +152,7 @@ export class NewUserChatController {
     responses: {
       '200': {
         description: 'NewUser.Chat DELETE success count',
-        content: {'application/json': {schema: String}},
+        content: {'application/json': {schema: {String}}},
       },
     },
   })
@@ -167,6 +167,6 @@ export class NewUserChatController {
     }
 
     await this.newUserRepository.chats(currentUserProfile[securityId]).delete({id: chatId});
-    return {"message" : 'message was successfully deleted'}
+    return 'message was successfully deleted'
   }
 }
