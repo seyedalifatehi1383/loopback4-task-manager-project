@@ -21,6 +21,7 @@ import {Chat} from '../models';
 import {ChatRepository} from '../repositories';
 import {authenticate} from '@loopback/authentication';
 import { showMessageResponse } from "../controllers/new-user-chat.controller";
+import {group} from 'node:console';
 
 @authenticate('jwt')
 export class ChatController {
@@ -104,7 +105,7 @@ export class ChatController {
   //   return this.chatRepository.updateAll(chat, where);
   // }
 
-  @get('/chats/{id}')
+  @get('/chats/{MessageGroup}')
   @response(200, {
     description: 'Chat model instance',
     content: {
@@ -114,10 +115,12 @@ export class ChatController {
     },
   })
   async findById(
-    @param.path.number('id') id: number,
-    @param.filter(Chat, {exclude: 'where'}) filter?: FilterExcludingWhere<Chat>
-  ): Promise<Chat> {
-    return this.chatRepository.findById(id, filter);
+
+    @param.path.string('MessageGroup') MessageGroup: string,
+    // @param.filter(Chat, {exclude: 'where'}) filter?: FilterExcludingWhere<Chat>
+  ): Promise<any> {
+    const messages = await this.chatRepository.find({where : {group : MessageGroup}})
+    return messages.map(obj =>({id : obj.id , title : obj.title , text : obj.text , group : obj.group , name : obj.name}))
   }
 
   // @patch('/chats/{id}')
