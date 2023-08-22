@@ -13,6 +13,7 @@ import {
   get,
   getModelSchemaRef,
   getWhereSchemaFor,
+  HttpErrors,
   param,
   patch,
   post,
@@ -147,7 +148,7 @@ export class NewUserChatController {
     return this.newUserRepository.chats(id).patch(chat, where);
   }
 
-  @del('/new-users/{id}/chats', {
+  @del('/new-users/chats/{chatId}', {
     responses: {
       '200': {
         description: 'NewUser.Chat DELETE success count',
@@ -156,9 +157,16 @@ export class NewUserChatController {
     },
   })
   async delete(
-    @param.path.string('id') id: string,
-    @param.query.object('where', getWhereSchemaFor(Chat)) where?: Where<Chat>,
-  ): Promise<Count> {
-    return this.newUserRepository.chats(id).delete(where);
+    @param.path.number('chatId') chatId: number,
+    @inject(SecurityBindings.USER)
+    currentUserProfile: UserProfile,
+  ): Promise<any> {
+    // const result = await this.newUserRepository.chats(currentUserProfile[securityId]).find({where: {id: chatId}})
+    // if (result.length == 0) {
+    //   throw new HttpErrors.Forbidden('you cannot delete other users\' messages')
+    // }
+
+    await this.newUserRepository.chats(currentUserProfile[securityId]).delete({id: chatId});
+    return {"message" : 'message was successfully deleted'}
   }
 }
