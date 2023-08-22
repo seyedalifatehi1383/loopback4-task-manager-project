@@ -70,7 +70,7 @@ export class NewUserChatController {
     @repository(NewUserRepository) protected newUserRepository: NewUserRepository,
   ) { }
 
-  @get('/new-users/{id}/chats', {
+  @get('/new-users/chats-history', {
     responses: {
       '200': {
         description: 'Array of NewUser has many Chat',
@@ -82,11 +82,11 @@ export class NewUserChatController {
       },
     },
   })
-  async find(
-    @param.path.string('id') id: string,
-    @param.query.object('filter') filter?: Filter<Chat>,
+  async findAll(
+    @inject(SecurityBindings.USER)
+    currentUserProfile: UserProfile,
   ): Promise<Chat[]> {
-    return this.newUserRepository.chats(id).find(filter);
+    return this.newUserRepository.chats(currentUserProfile[securityId]).find();
   }
 
   @post('/new-users/chats', {
@@ -95,9 +95,9 @@ export class NewUserChatController {
         description: 'NewUser model instance',
         content: {'application/json': {
           schema: getModelSchemaRef(Chat , {
-            partial : true,
-            exclude : ['newUserId']
-          })
+              partial : true,
+              exclude : ['newUserId']
+            })
           }
         },
       },
@@ -125,30 +125,46 @@ export class NewUserChatController {
     return _.omit(response, 'newUserId')
   }
 
-  @patch('/new-users/{id}/chats', {
+  @patch('/new-users/chats/{messageId}', {
     responses: {
       '200': {
         description: 'NewUser.Chat PATCH success count',
-        content: {'application/json': {schema: CountSchema}},
+        content: {'application/json': {
+          schema: getModelSchemaRef(Chat, {
+            partial: true,
+            exclude: ['newUserId']
+          })
+      }},
       },
     },
   })
   async patch(
-    @param.path.string('id') id: string,
+    @param.path.number('messageId') messageId: number,
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(Chat, {partial: true}),
+          schema: getModelSchemaRef(Chat, {
+            partial: true,
+            exclude: ['id', 'name', 'newUserId']
+          }),
         },
       },
     })
     chat: Partial<Chat>,
-    @param.query.object('where', getWhereSchemaFor(Chat)) where?: Where<Chat>,
-  ): Promise<Count> {
-    return this.newUserRepository.chats(id).patch(chat, where);
+    @inject(SecurityBindings.USER)
+    currentUserProfile: UserProfile,
+  ): Promise<any> {
+    const count = (await this.newUserRepository.chats(currentUserProfile[securityId]).patch(chat , {id: messageId})).count
+    const response = await this.newUserRepository.chats(currentUserProfile[securityId]).find({where : {id: messageId}})
+
+    if (count == 0) {
+      throw new HttpErrors.Forbidden('the entered id is not valid')
+    }
+
+    return _.omit(response[0], 'newUserId')
   }
 
-  @del('/new-users/chats/{chatId}', {
+  @del('/new-users/chats/{messageId}', {
     responses: {
       '200': {
         description: 'NewUser.Chat DELETE success count',
@@ -157,16 +173,16 @@ export class NewUserChatController {
     },
   })
   async delete(
-    @param.path.number('chatId') chatId: number,
+    @param.path.number('messageId') messageId: number,
     @inject(SecurityBindings.USER)
     currentUserProfile: UserProfile,
   ): Promise<any> {
-    const result = await this.newUserRepository.chats(currentUserProfile[securityId]).find({where: {id: chatId}})
+    const result = await this.newUserRepository.chats(currentUserProfile[securityId]).find({where: {id: messageId}})
     if (result.length == 0) {
       throw new HttpErrors.Forbidden('you cannot delete other users\' messages')
     }
 
-    await this.newUserRepository.chats(currentUserProfile[securityId]).delete({id: chatId});
+    await this.newUserRepository.chats(currentUserProfile[securityId]).delete({id: messageId});
     return 'message was successfully deleted'
   }
 }
