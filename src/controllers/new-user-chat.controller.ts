@@ -1,6 +1,7 @@
 import {
   Count,
   CountSchema,
+  Entity,
   Filter,
   model,
   property,
@@ -27,24 +28,31 @@ import {NewUserRepository} from '../repositories';
 import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 import {inject} from '@loopback/core';
 import {authenticate} from '@loopback/authentication';
+import {test} from 'node:test';
+import _ from 'lodash';
 
 @model()
-export class showMessageResponse  {
+export class showMessageResponse extends Entity {
+  @property({
+    type: 'number'
+  })
+  id : number
+
   @property({
     type : 'string',
-    require :true
+    required :true
   })
   name : string;
 
   @property({
     type : 'string',
-    require :true
+    // required :true
   })
-  title : string;
+  title? : string;
 
   @property({
     type : 'string',
-    require :true
+    required :true
   })
   text : string;
 
@@ -108,14 +116,12 @@ export class NewUserChatController {
     chat: Omit<Chat, 'id'>,
     @inject(SecurityBindings.USER)
     currentUserProfile: UserProfile,
-    showResponse: showMessageResponse
-  ): Promise<any> {
+    ): Promise<any> {
     chat.newUserId = currentUserProfile[securityId]
+    // let showResponse: showMessageResponse
     chat.name = currentUserProfile.name!
     const response = await this.newUserRepository.chats(currentUserProfile[securityId]).create(chat);
-    showResponse.group = response.group
-    showResponse.group = response.group
-    // return currentUserProfile.name
+    return _.omit(response, 'newUserId')
   }
 
   @patch('/new-users/{id}/chats', {
