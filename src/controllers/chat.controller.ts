@@ -4,6 +4,8 @@ import {
   Event,
   Filter,
   FilterExcludingWhere,
+  model,
+  property,
   repository,
   Where,
 } from '@loopback/repository';
@@ -17,19 +19,33 @@ import {
   del,
   requestBody,
   response,
+  HttpErrors,
 } from '@loopback/rest';
 import {Chat} from '../models';
-import {ChatRepository} from '../repositories';
+import {ChatRepository , NewUserRepository} from '../repositories';
 import {authenticate} from '@loopback/authentication';
 import { showMessageResponse } from "../controllers/new-user-chat.controller";
 import {group} from 'node:console';
 import {text} from 'stream/consumers';
+import {inject} from '@loopback/core';
+import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
+
+
+@model()
+export class delMessage{
+  @property({
+    type : 'string'
+  })
+  Message : string
+}
 
 @authenticate('jwt')
 export class ChatController {
   constructor(
     @repository(ChatRepository)
     public chatRepository : ChatRepository,
+    @repository(NewUserRepository)
+    public NewUserRepository : NewUserRepository,
   ) {}
 
   // @post('/chats')
@@ -172,11 +188,31 @@ export class ChatController {
   //   await this.chatRepository.replaceById(id, chat);
   // }
 
-  @del('/chats/{id}')
+  @del('/chats/Admin/{MessageId}')
   @response(204, {
-    description: 'Chat DELETE success',
+    description: 'this route need Admin access(only admin can delete the message of user\'s)',
+    content: {
+      'application/json': {
+        schema: getModelSchemaRef(delMessage, {includeRelations: true}),
+      },
+    },
   })
-  async deleteById(@param.path.number('id') id: number): Promise<void> {
-    await this.chatRepository.deleteById(id);
+
+  async deleteById(
+    @inject(SecurityBindings.USER)
+    currentUserProfile: UserProfile,
+    @param.path.number('MessageId') MessageId: number
+    ): Promise<any> {
+    const currentUser = await this.NewUserRepository.findById(currentUserProfile[securityId])
+    if (currentUser.accessLevel == "Admin") {
+      if (await this.chatRepository.findById(MessageId) == null) {
+        throw new HttpErrors[404]
+      } else {
+        await this.chatRepository.deleteById(MessageId);
+        return {Message : "this message deleted successfully"}
+      }
+    } else {
+      throw new HttpErrors.Forbidden('just admin can delete other messages')
+    }
   }
 }
