@@ -2,6 +2,8 @@ import {
   Count,
   CountSchema,
   Filter,
+  model,
+  property,
   repository,
   Where,
 } from '@loopback/repository';
@@ -25,7 +27,32 @@ import {SecurityBindings, securityId, UserProfile} from '@loopback/security';
 import {inject} from '@loopback/core';
 import {authenticate} from '@loopback/authentication';
 
+@model()
+export class showMessageResponse  {
+  @property({
+    type : 'string',
+    require :true
+  })
+  name : string;
 
+  @property({
+    type : 'string',
+    require :true
+  })
+  title : string;
+
+  @property({
+    type : 'string',
+    require :true
+  })
+  desc : string;
+
+  @property({
+    type : 'string',
+    // require :true
+  })
+  group? : string;
+}
 
 @authenticate('jwt')
 export class NewUserChatController {
