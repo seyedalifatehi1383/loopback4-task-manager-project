@@ -113,7 +113,7 @@ export class NewUserTaskController {
         'application/json': {
           schema: getModelSchemaRef(Task, {
             partial: true,
-            exclude : ['newUserId' , 'id']
+            exclude : ['newUserId' , 'id','isfinish']
           }),
         },
       },
