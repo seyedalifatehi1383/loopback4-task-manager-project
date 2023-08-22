@@ -16,6 +16,7 @@ import {
   patch,
   post,
   requestBody,
+  response,
 } from '@loopback/rest';
 import {
   NewUser,
@@ -45,7 +46,7 @@ export class showMessageResponse  {
     type : 'string',
     require :true
   })
-  desc : string;
+  text : string;
 
   @property({
     type : 'string',
@@ -107,10 +108,13 @@ export class NewUserChatController {
     chat: Omit<Chat, 'id'>,
     @inject(SecurityBindings.USER)
     currentUserProfile: UserProfile,
+    showResponse: showMessageResponse
   ): Promise<any> {
     chat.newUserId = currentUserProfile[securityId]
     chat.name = currentUserProfile.name!
-    return this.newUserRepository.chats(currentUserProfile[securityId]).create(chat);
+    const response = await this.newUserRepository.chats(currentUserProfile[securityId]).create(chat);
+    showResponse.group = response.group
+    showResponse.group = response.group
     // return currentUserProfile.name
   }
 
