@@ -78,10 +78,10 @@ export class ChatController {
   })
   async find(
     // @param.filter(Chat) filter?: Filter<Chat>,
-  ): Promise<showMessageResponse[]> {
+  ): Promise<any> {
     const allMessage = await this.chatRepository.find() ;
     // let finalResualt : showMessageResponse[];
-    const finalResualt = allMessage.map(obj => ({id : obj.id! , title : obj.title! , text : obj.text, group : obj.group , name : obj.name }))
+    const finalResualt = allMessage.map(obj => ({id : obj.id , title : obj.title! , text : obj.text, group : obj.group! , name : obj.name }))
     return finalResualt
   }
 
