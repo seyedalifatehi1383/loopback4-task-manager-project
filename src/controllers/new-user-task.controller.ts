@@ -80,7 +80,7 @@ export class NewUserTaskController {
     const currentUser = await this.newUserRepository.findById(currentId)
     const already = await this.newUserRepository.tasks(id).find({where : {title : task.title}})
     if (currentUser.accessLevel == "Admin") {
-      if (already === null) {
+      if (already.length == 0) {
         task.isfinish = false
         task.newUserId = id;
         return this.newUserRepository.tasks(id).create(task);
@@ -89,7 +89,7 @@ export class NewUserTaskController {
       }
 
     }else if (currentUser.accessLevel == "SubAdmin") {
-      if (already === null) {
+      if (already.length == 0) {
         const targetUser =await this.newUserRepository.findById(id)
       if (targetUser.accessLevel == "Admin" || targetUser.accessLevel == "SubAdmin") {
         throw new HttpErrors.Forbidden('SubAdmins can only  add task  for Users')
