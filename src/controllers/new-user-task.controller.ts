@@ -67,7 +67,7 @@ export class NewUserTaskController {
         'application/json': {
           schema: getModelSchemaRef(Task, {
             title: 'NewTaskInNewUser',
-            exclude: ['id' , 'newUserId'],
+            exclude: ['id' , 'newUserId' , 'isfinish'],
             // optional: ['newUserId']
           }),
         },
@@ -79,6 +79,7 @@ export class NewUserTaskController {
     const currentId = currentUserProfile[securityId]
     const currentUser = await this.newUserRepository.findById(currentId)
     if (currentUser.accessLevel == "Admin") {
+      task.isfinish = false
       task.newUserId = id;
       return this.newUserRepository.tasks(id).create(task);
 
@@ -87,6 +88,7 @@ export class NewUserTaskController {
       if (targetUser.accessLevel == "Admin" || targetUser.accessLevel == "SubAdmin") {
         throw new HttpErrors.Forbidden('SubAdmins can only  add task  for Users')
       } else {
+        task.isfinish = false
         task.newUserId = id;
         return this.newUserRepository.tasks(id).create(task);
       }
