@@ -52,7 +52,7 @@ export class NewUserTaskController {
   //   return this.newUserRepository.tasks(id).find(filter);
   // }
 
-  @post('/new-users/{id}/tasks', {
+  @post('/AdminOrSubAdmin/{id}/tasks', {
     responses: {
       '200': {
         description: 'NewUser model instance',
