@@ -183,7 +183,7 @@ export class NewUserTaskController {
   }
   // ------------------------------------------------------------
 
-  @del('/new-users/{id}/tasks', {
+  @del('/Admin/{userId}/task/{taskId}', {
     responses: {
       '200': {
         description: 'NewUser.Task DELETE success count',
@@ -192,10 +192,18 @@ export class NewUserTaskController {
     },
   })
   async delete(
-    @param.path.string('id') id: string,
-    @param.query.object('where', getWhereSchemaFor(Task)) where?: Where<Task>,
+    @param.path.string('userId') userId: string,
+    @param.path.number('taskId') taskId: number,
+    @inject(SecurityBindings.USER)
+    currentUserProfile: UserProfile,
   ): Promise<Count> {
-    return this.newUserRepository.tasks(id).delete(where);
+    const currentUser = await this.newUserRepository.findById(currentUserProfile[securityId])
+    if (currentUser.accessLevel == "Admin") {
+      return this.newUserRepository.tasks(userId).delete({id : taskId})
+
+    } else {
+      throw new HttpErrors.Forbidden('Just Admin access to this route')
+    }
   }
 
   @get('/new-users/myTaskCount', {
