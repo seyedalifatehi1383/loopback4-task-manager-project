@@ -33,24 +33,24 @@ export class NewUserTaskController {
     @repository(NewUserRepository) protected newUserRepository: NewUserRepository,
   ) { }
 
-  @get('/new-users/{id}/tasks', {
-    responses: {
-      '200': {
-        description: 'Array of NewUser has many Task',
-        content: {
-          'application/json': {
-            schema: {type: 'array', items: getModelSchemaRef(Task)},
-          },
-        },
-      },
-    },
-  })
-  async find(
-    @param.path.string('id') id: string,
-    @param.query.object('filter') filter?: Filter<Task>,
-  ): Promise<Task[]> {
-    return this.newUserRepository.tasks(id).find(filter);
-  }
+  // @get('/new-users/{id}/tasks', {
+  //   responses: {
+  //     '200': {
+  //       description: 'Array of NewUser has many Task',
+  //       content: {
+  //         'application/json': {
+  //           schema: {type: 'array', items: getModelSchemaRef(Task)},
+  //         },
+  //       },
+  //     },
+  //   },
+  // })
+  // async find(
+  //   @param.path.string('id') id: string,
+  //   @param.query.object('filter') filter?: Filter<Task>,
+  // ): Promise<Task[]> {
+  //   return this.newUserRepository.tasks(id).find(filter);
+  // }
 
   @post('/new-users/{id}/tasks', {
     responses: {
