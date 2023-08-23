@@ -108,7 +108,7 @@ export class NewUserTaskController {
     // return currentUserProfile[securityId]
   }
 
-  @patch('/new-users/{id}/tasks/{taskId}', {
+  @patch('/AdminOrSubAdmin/{id}/tasks/{taskId}', {
     responses: {
       '200': {
         description: 'NewUser.Task PATCH success count',
