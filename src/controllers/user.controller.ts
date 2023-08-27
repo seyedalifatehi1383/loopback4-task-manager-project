@@ -166,8 +166,10 @@ export class UserController {
     currentUserProfile: UserProfile,
     // newUser : NewUser
   ): Promise<any> {
-    return currentUserProfile;
+    const user = await this.newUserRepository.findById(currentUserProfile[securityId])
+    return _.omit(user, 'realm', 'email', 'emailVerified', 'verificationToken', 'password');
   }
+
   @authenticate('jwt')
   @patch('/changeEminency/{id}')
   @response(200, {
