@@ -202,7 +202,21 @@ export class NewUserTaskController {
       return this.newUserRepository.tasks(userId).delete({id : taskId})
 
     } else {
-      throw new HttpErrors.Forbidden('Just Admin access to this route')
+      if (currentUser.accessLevel == "SubAdmin") {
+        const targetUser = await this.newUserRepository.findById(userId)
+
+        if (targetUser.accessLevel == "User") {
+          return this.newUserRepository.tasks(userId).delete({id : taskId})
+        }
+
+        else {
+          throw new HttpErrors.Forbidden('You can only remove users tasks')
+        }
+      }
+
+      else {
+        throw new HttpErrors.Forbidden('Just Admin and sub admins have access to this route')
+      }
     }
   }
 
