@@ -153,9 +153,11 @@ export class UserController {
         description: 'Return current user',
         content: {
           'application/json': {
-            schema: {
-              type: 'string',
-            },
+            schema: getModelSchemaRef(NewUser ,{
+              // type: 'string',
+              partial: true,
+              exclude: ['realm', 'emailVerified', 'verificationToken', 'password']
+            })
           },
         },
       },
@@ -167,7 +169,7 @@ export class UserController {
     // newUser : NewUser
   ): Promise<any> {
     const user = await this.newUserRepository.findById(currentUserProfile[securityId])
-    return _.omit(user, 'realm', 'email', 'emailVerified', 'verificationToken', 'password');
+    return _.omit(user, 'realm', 'emailVerified', 'verificationToken', 'password');
   }
 
   @authenticate('jwt')
