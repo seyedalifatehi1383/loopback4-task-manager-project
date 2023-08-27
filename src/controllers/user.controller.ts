@@ -229,6 +229,31 @@ export class UserController {
   }
 
 
+  @authenticate('jwt')
+  @get('/showUsers', {
+    responses: {
+      '200': {
+        description: 'Return current user',
+        content: {
+          'application/json': {
+            schema: getModelSchemaRef(NewUser ,{
+              // type: 'string',
+              partial: true,
+              exclude: ['realm']
+            })
+          },
+        },
+      },
+    },
+  })
+  async showUsers(
+    // newUser : Omit<NewUser, 'realm' | 'emailVerified' | 'verificationToken' | 'password'>
+  ): Promise<any> {
+    const user = await this.newUserRepository.find({where: {accessLevel: "User"}})
+    // const user = await this.newUserRepository.find()
+    // return _.omit(user, 'realm', 'emailVerified', 'verificationToken', 'password');
+    return user.map(obj => ({id: obj.id, username: obj.username, email: obj.email}));
+  }
 
   @authenticate('jwt')
   @del('/deleteAccount', {
