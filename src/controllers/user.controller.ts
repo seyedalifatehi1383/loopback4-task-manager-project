@@ -241,7 +241,7 @@ export class UserController {
             schema: getModelSchemaRef(NewUser ,{
               // type: 'string',
               partial: true,
-              exclude: ['realm']
+              exclude: ['realm' , 'emailVerified' ,'verificationToken' , 'password']
             })
           },
         },
@@ -254,7 +254,7 @@ export class UserController {
     const user = await this.newUserRepository.find({where: {accessLevel: "User"}})
     // const user = await this.newUserRepository.find()
     // return _.omit(user, 'realm', 'emailVerified', 'verificationToken', 'password');
-    return user.map(obj => ({id: obj.id, username: obj.username, email: obj.email}));
+    return user.map(obj => ({id: obj.id, username: obj.username, email: obj.email , accessLevel : obj.accessLevel}));
   }
 
   @authenticate('jwt')
