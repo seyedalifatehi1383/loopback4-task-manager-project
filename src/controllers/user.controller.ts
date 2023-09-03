@@ -258,6 +258,32 @@ export class UserController {
   }
 
   @authenticate('jwt')
+  @get('/showSubAdmin', {
+    responses: {
+      '200': {
+        description: 'Return current user',
+        content: {
+          'application/json': {
+            schema: getModelSchemaRef(NewUser ,{
+              // type: 'string',
+              partial: true,
+              exclude: ['realm' , 'emailVerified' ,'verificationToken' , 'password']
+            })
+          },
+        },
+      },
+    },
+  })
+  async showSubAdmin(
+    // newUser : Omit<NewUser, 'realm' | 'emailVerified' | 'verificationToken' | 'password'>
+  ): Promise<any> {
+    const user = await this.newUserRepository.find({where: {accessLevel: "SubAdmin"}})
+    // const user = await this.newUserRepository.find()
+    // return _.omit(user, 'realm', 'emailVerified', 'verificationToken', 'password');
+    return user.map(obj => ({id: obj.id, username: obj.username, email: obj.email , accessLevel : obj.accessLevel}));
+  }
+
+  @authenticate('jwt')
   @del('/deleteAccount', {
     responses: {
       '200': {
