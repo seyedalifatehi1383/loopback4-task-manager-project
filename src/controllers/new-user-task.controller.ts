@@ -67,7 +67,7 @@ export class NewUserTaskController {
         'application/json': {
           schema: getModelSchemaRef(Task, {
             title: 'NewTaskInNewUser',
-            exclude: ['id' , 'newUserId' , 'isfinish'],
+            exclude: ['id', 'newUserId', 'isfinish'],
             // optional: ['newUserId']
           }),
         },
@@ -78,7 +78,7 @@ export class NewUserTaskController {
   ): Promise<any> {
     const currentId = currentUserProfile[securityId]
     const currentUser = await this.newUserRepository.findById(currentId)
-    const already = await this.newUserRepository.tasks(id).find({where : {title : task.title}})
+    const already = await this.newUserRepository.tasks(id).find({where: {title: task.title}})
     if (currentUser.accessLevel == "Admin") {
       if (already.length == 0) {
         task.isfinish = false
@@ -88,16 +88,16 @@ export class NewUserTaskController {
         throw new HttpErrors.Conflict('this task already exists for this user')
       }
 
-    }else if (currentUser.accessLevel == "SubAdmin") {
+    } else if (currentUser.accessLevel == "SubAdmin") {
       if (already.length == 0) {
-        const targetUser =await this.newUserRepository.findById(id)
-      if (targetUser.accessLevel == "Admin" || targetUser.accessLevel == "SubAdmin") {
-        throw new HttpErrors.Forbidden('SubAdmins can only  add task  for Users')
-      } else {
-        task.isfinish = false
-        task.newUserId = id;
-        return this.newUserRepository.tasks(id).create(task);
-      }
+        const targetUser = await this.newUserRepository.findById(id)
+        if (targetUser.accessLevel == "Admin" || targetUser.accessLevel == "SubAdmin") {
+          throw new HttpErrors.Forbidden('SubAdmins can only  add task  for Users')
+        } else {
+          task.isfinish = false
+          task.newUserId = id;
+          return this.newUserRepository.tasks(id).create(task);
+        }
       } else {
         throw new HttpErrors.Conflict('this task already exits for this user')
       }
@@ -124,7 +124,7 @@ export class NewUserTaskController {
         'application/json': {
           schema: getModelSchemaRef(Task, {
             partial: true,
-            exclude : ['newUserId' , 'id','isfinish']
+            exclude: ['newUserId', 'id', 'isfinish']
           }),
         },
       },
@@ -137,15 +137,15 @@ export class NewUserTaskController {
     const currentId = currentUserProfile[securityId]
     const currentUser = await this.newUserRepository.findById(currentId)
     if (currentUser.accessLevel == "Admin") {
-      return this.newUserRepository.tasks(id).patch(task,{id : taskId});
-    } else if(currentUser.accessLevel == "SubAdmin") {
+      return this.newUserRepository.tasks(id).patch(task, {id: taskId});
+    } else if (currentUser.accessLevel == "SubAdmin") {
       const targetUser = await this.newUserRepository.findById(id)
       if (targetUser.accessLevel == "User") {
-        return this.newUserRepository.tasks(id).patch(task,{id : taskId});
+        return this.newUserRepository.tasks(id).patch(task, {id: taskId});
       } else {
         throw new HttpErrors.Forbidden('Sub admin can only edit user\'s tasks')
       }
-    }else{
+    } else {
       throw new HttpErrors.Forbidden('User can not edit tasks')
     }
 
@@ -199,14 +199,14 @@ export class NewUserTaskController {
   ): Promise<Count> {
     const currentUser = await this.newUserRepository.findById(currentUserProfile[securityId])
     if (currentUser.accessLevel == "Admin") {
-      return this.newUserRepository.tasks(userId).delete({id : taskId})
+      return this.newUserRepository.tasks(userId).delete({id: taskId})
 
     } else {
       if (currentUser.accessLevel == "SubAdmin") {
         const targetUser = await this.newUserRepository.findById(userId)
 
         if (targetUser.accessLevel == "User") {
-          return this.newUserRepository.tasks(userId).delete({id : taskId})
+          return this.newUserRepository.tasks(userId).delete({id: taskId})
         }
 
         else {
@@ -237,7 +237,7 @@ export class NewUserTaskController {
     currentUserProfile: UserProfile,
   ): Promise<Count> {
     const taskCount = (await this.newUserRepository.tasks(currentUserProfile[securityId]).find()).length
-    return {count : taskCount};
+    return {count: taskCount};
   }
 
 
@@ -257,7 +257,7 @@ export class NewUserTaskController {
     @inject(SecurityBindings.USER)
     currentUserProfile: UserProfile,
   ): Promise<Task[]> {
-    return this.newUserRepository.tasks(currentUserProfile[securityId]).find({where : {isfinish : true}});
+    return this.newUserRepository.tasks(currentUserProfile[securityId]).find({where: {isfinish: true}});
   }
 
 
@@ -277,11 +277,12 @@ export class NewUserTaskController {
     @inject(SecurityBindings.USER)
     currentUserProfile: UserProfile,
   ): Promise<Task[]> {
-    return this.newUserRepository.tasks(currentUserProfile[securityId]).find({where : {isfinish : false}});
+    return this.newUserRepository.tasks(currentUserProfile[securityId]).find({where: {isfinish: false}});
   }
 
-  // admin can see the task of all of the users and subAdmins
-  @get('/admin/{userId}/task', {
+  // admin can see the tasks of all of the users and subAdmins
+  // sub admin can see the tasks of all of the users
+  @get('/AdminOrSubAdmin/{userId}/task', {
     responses: {
       '200': {
         description: 'Array of NewUser has many Task',
@@ -294,15 +295,21 @@ export class NewUserTaskController {
     },
   })
   async findAllUsersTasks(
-    @param.path.string('userId') userId :string,
+    @param.path.string('userId') userId: string,
     @inject(SecurityBindings.USER)
     currentUserProfile: UserProfile,
   ): Promise<any> {
     const currentUser = await this.newUserRepository.findById(currentUserProfile[securityId])
     const targetUser = await this.newUserRepository.findById(userId)
 
-    if (currentUser.accessLevel != "Admin") throw new HttpErrors.Forbidden('you cannot access to this route')
-    if (targetUser.accessLevel == "Admin") throw new HttpErrors.Forbidden('you cannot see your own tasks here, you can see them in \'myTasks\' route instead')
+    if (currentUser.accessLevel == "User")
+      throw new HttpErrors.Forbidden('you cannot access to this route')
+
+    if (targetUser.accessLevel == "Admin")
+      throw new HttpErrors.Forbidden('you cannot see your own tasks here, you can see them in \'myTasks\' route instead')
+
+    if ((targetUser.accessLevel == "SubAdmin" || targetUser.accessLevel == "Admin") && currentUser.accessLevel == "SubAdmin")
+      throw new HttpErrors.Forbidden('sub admins can only see users tasks')
 
     return this.newUserRepository.tasks(userId).find();
   }
@@ -321,7 +328,7 @@ export class NewUserTaskController {
     },
   })
   async findUsersTasks(
-    @param.path.string('userId') userId :string,
+    @param.path.string('userId') userId: string,
     @inject(SecurityBindings.USER)
     currentUserProfile: UserProfile,
   ): Promise<any> {
