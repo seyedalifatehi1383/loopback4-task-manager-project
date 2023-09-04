@@ -25,7 +25,6 @@ import {genSalt, hash} from 'bcryptjs';
 import { NewUser } from "../models";
 import { NewUserRepository } from "../repositories";
 import _ from 'lodash';
-import {error} from 'console';
 
 
 @model()
@@ -133,10 +132,10 @@ export class UserController {
     newUser : NewUser
   ): Promise<any> {
     // ensure the user exists, and the password is correct
-    const user = await this.newUserRepository.findOne({where : {email : newUser.email}})
+    const user = await this.newUserRepository.findOne({where : {email : newUser.email , password : newUser.password}})
     // convert a User object into a UserProfile object (reduced set of properties)
   if (user === null) {
-  throw new HttpErrors.NotFound('there is no such user')
+  throw new HttpErrors.NotFound('email or password is wrong')
   } else {
   const userProfile = this.userService.convertToUserProfile(user);
   // // create a JSON Web Token based on the user profile
