@@ -38,6 +38,7 @@ export class deletUserResponse  {
 }
 
 
+
 export class UserController {
   constructor(
     @inject(TokenServiceBindings.TOKEN_SERVICE)
@@ -121,13 +122,14 @@ export class UserController {
       content: {
         'application/json': {
           schema: getModelSchemaRef(NewUser, {
-            title: 'NewUser',
+            title: 'login',
             partial : true,
-            exclude : ['accessLevel']
+            exclude : ['accessLevel','username' ,'id', 'realm' , 'emailVerified' ,'verificationToken' ]
           }),
         },
       },
     })
+    // @requestBody()
     newUser : NewUser
   ): Promise<any> {
     // ensure the user exists, and the password is correct
